@@ -1,11 +1,25 @@
 import css from './Contacts.module.css';
 import { IoIosContact } from 'react-icons/io';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeContact } from 'redux/contactSlice';
+import { getContacts, getFilter } from 'redux/selectors';
 
-const Contacts = ({ contacts, onRemove }) => {
+const Contacts = () => {
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+
+  const dispatch = useDispatch();
+
+  const getContactList = contacts.filter(({ name }) =>
+    name.toLowerCase().includes(filter)
+  );
+
+  // console.log(getContactList);
+
   return (
     <ul className={css.contactList}>
-      {contacts.map(({ id, name, number }) => (
-        <li key={name} className={css.contactListItem}>
+      {getContactList.map(({ id, name, number }) => (
+        <li key={id} className={css.contactListItem}>
           <IoIosContact
             size="20px"
             color="rgb(85, 75, 75)"
@@ -14,7 +28,7 @@ const Contacts = ({ contacts, onRemove }) => {
           {name}: {number}{' '}
           <button
             type="button"
-            onClick={() => onRemove(id)}
+            onClick={() => dispatch(removeContact(id))}
             className={css.btnContactList}
           >
             Delete
@@ -24,4 +38,5 @@ const Contacts = ({ contacts, onRemove }) => {
     </ul>
   );
 };
+
 export default Contacts;

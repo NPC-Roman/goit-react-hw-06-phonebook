@@ -1,58 +1,71 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contactSlice';
+import { getContacts } from 'redux/selectors';
+import { toast } from 'react-toastify';
 import shortid from 'shortid';
 import css from './Form.module.css';
 
-function Form({ addToContact }) {
+export const Form = () => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+  const contacts = useSelector(getContacts);
   const nameFormId = shortid.generate();
   const numberFormId = shortid.generate();
+  const dispatch = useDispatch();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    number: '',
-  });
-  /*
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      number: '',
-    });
-  };
-*/
-  const onHandleInputChange = evt => {
+  const handleChangeInput = evt => {
     const { name, value } = evt.currentTarget;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value,
-    }));
+    switch (name) {
+      case 'name':
+        setName(value);
+        break;
+
+      case 'number':
+        setNumber(value);
+        break;
+
+      default:
+        console.log('Invalid case');
+    }
   };
 
-  const onSubmitForm = evt => {
-    evt.preventDefault();
+  const handleSubmit = event => {
+    event.preventDefault();
 
-    const { name, number } = formData;
+    if (
+      contacts.find(
+        contact =>
+          contact.name.toLowerCase().trim() === name.toLowerCase().trim()
+      )
+    ) {
+      toast.error(`${name} is alredy in contacts`);
+      return;
+    }
 
-    const contactData = {
-      id: shortid.generate(),
-      name,
-      number,
-    };
+    dispatch(
+      addContact({
+        id: shortid.generate(),
+        name,
+        number,
+      })
+    );
 
-    addToContact(contactData);
+    event.target.reset();
   };
 
   return (
-    <form onSubmit={onSubmitForm} className={css.form}>
+    <form onSubmit={handleSubmit} className={css.form}>
       <label htmlFor={nameFormId} className={css.labelForm}>
-        Name{' '}
+        Name
       </label>
       <input
         type="text"
         name="name"
-        value={formData.name}
-        onChange={onHandleInputChange}
+        onChange={handleChangeInput}
         id={nameFormId}
         className={css.inputForm}
-        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zAZа-яА-Я]*)*$"
+        pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
         title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
         required
       />
@@ -63,8 +76,7 @@ function Form({ addToContact }) {
       <input
         type="tel"
         name="number"
-        value={formData.number}
-        onChange={onHandleInputChange}
+        onChange={handleChangeInput}
         id={numberFormId}
         className={css.inputForm}
         pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
@@ -76,6 +88,6 @@ function Form({ addToContact }) {
       </button>
     </form>
   );
-}
+};
 
 export default Form;
